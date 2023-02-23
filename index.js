@@ -1,4 +1,4 @@
-const { response } = require("express");
+const { response, request } = require("express");
 const express = require("express");
 const app = express();
 
@@ -38,6 +38,17 @@ app.get("/info", (request, response) => {
   response.send(
     `<p>Phonebook has info for ${numOfPeople} people</p><br>${currentTime}`
   );
+});
+
+app.get("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  const person = phonebook.find((person) => person.id === id);
+
+  if (person) {
+    response.json(person);
+  } else {
+    response.status(404).end();
+  }
 });
 
 app.listen(PORT, () => {
