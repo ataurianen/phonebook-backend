@@ -1,3 +1,4 @@
+const { response } = require("express");
 const express = require("express");
 const app = express();
 
@@ -28,6 +29,15 @@ let phonebook = [
 
 app.get("/api/persons", (request, response) => {
   response.json(phonebook);
+});
+
+app.get("/info", (request, response) => {
+  const numOfPeople = phonebook.length;
+  const currentTime = new Date();
+
+  response.send(
+    `<p>Phonebook has info for ${numOfPeople} people</p><br>${currentTime}`
+  );
 });
 
 app.listen(PORT, () => {
