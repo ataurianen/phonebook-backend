@@ -4,6 +4,8 @@ const app = express();
 
 const PORT = 3001;
 
+app.use(express.json());
+
 let phonebook = [
   {
     id: 1,
@@ -49,6 +51,23 @@ app.get("/api/persons/:id", (request, response) => {
   } else {
     response.status(404).end();
   }
+});
+
+app.delete("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  phonebook = phonebook.filter((person) => person.id !== id);
+
+  response.status(204).end();
+});
+
+app.post("/api/persons", (request, response) => {
+  const randomID = Math.floor(Math.random() * (10000 - 1) + 1);
+
+  const person = request.body;
+  person.id = randomID;
+  phonebook = phonebook.concat(person);
+
+  response.json(person);
 });
 
 app.listen(PORT, () => {
