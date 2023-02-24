@@ -4,6 +4,12 @@ const app = express();
 
 const PORT = 3001;
 
+const generateID = () => {
+  const max = 10000;
+  const min = 1;
+  return (randomID = Math.floor(Math.random() * (max - min) + min));
+};
+
 app.use(express.json());
 
 let phonebook = [
@@ -61,10 +67,32 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 app.post("/api/persons", (request, response) => {
-  const randomID = Math.floor(Math.random() * (10000 - 1) + 1);
+  const body = request.body;
 
-  const person = request.body;
-  person.id = randomID;
+  if (!body.name) {
+    return response.status(400).json({
+      error: "missing name",
+    });
+  }
+
+  if (!body.number) {
+    return response.status(400).json({
+      error: "missing number",
+    });
+  }
+
+  if (phonebook.some((person) => person.name === body.name)) {
+    return response.status(400).json({
+      error: "name is already in phonebook",
+    });
+  }
+
+  const person = {
+    id: generateID(),
+    name: body.name,
+    number: body.number,
+  };
+
   phonebook = phonebook.concat(person);
 
   response.json(person);
