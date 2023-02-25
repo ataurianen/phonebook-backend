@@ -11,8 +11,15 @@ const generateID = () => {
   return (randomID = Math.floor(Math.random() * (max - min) + min));
 };
 
+morgan.token("data", (request) => {
+  const body = request.body;
+  return `{"name":"${body.name}", "number":"${body.number}"}`;
+});
+
 app.use(express.json());
-app.use(morgan("tiny"));
+app.use(
+  morgan(":method :url :status :res[content-lenght] :response-time ms :data")
+);
 
 let phonebook = [
   {
