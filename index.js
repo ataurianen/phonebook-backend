@@ -1,5 +1,6 @@
 const { response, request } = require("express");
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
 const PORT = 3001;
@@ -11,6 +12,7 @@ const generateID = () => {
 };
 
 app.use(express.json());
+app.use(morgan("tiny"));
 
 let phonebook = [
   {
