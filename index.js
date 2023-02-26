@@ -4,7 +4,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const app = express();
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 const generateID = () => {
   const max = 10000;
@@ -19,6 +19,7 @@ morgan.token("data", (request) => {
 
 app.use(express.json());
 app.use(cors());
+app.use(express.static("build"));
 app.use(
   morgan(":method :url :status :res[content-lenght] :response-time ms :data")
 );
