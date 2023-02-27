@@ -6,12 +6,6 @@ const cors = require("cors");
 const app = express();
 const Person = require("./models/person");
 
-const generateID = () => {
-  const max = 10000;
-  const min = 1;
-  return (randomID = Math.floor(Math.random() * (max - min) + min));
-};
-
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
@@ -59,33 +53,34 @@ app.delete("/api/persons/:id", (request, response) => {
 app.post("/api/persons", (request, response) => {
   const body = request.body;
 
-  if (!body.name) {
+  if (body.name === undefined) {
     return response.status(400).json({
       error: "missing name",
     });
   }
 
-  if (!body.number) {
+  if (body.number === undefined) {
     return response.status(400).json({
       error: "missing number",
     });
   }
 
+  /*
   if (phonebook.some((person) => person.name === body.name)) {
     return response.status(400).json({
       error: "name is already in phonebook",
     });
   }
+  */
 
-  const person = {
-    id: generateID(),
+  const person = new Person({
     name: body.name,
     number: body.number,
-  };
+  });
 
-  phonebook = phonebook.concat(person);
-
-  response.json(person);
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
 });
 
 app.use(unknownEndpoint);
