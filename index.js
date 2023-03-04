@@ -6,18 +6,20 @@ const cors = require("cors");
 const app = express();
 const Person = require("./models/person");
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
-
 const errorHandler = (error, request, response, next) => {
   console.log(error.message);
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "TypeError") {
+    return response.status(400).send({ error: "Does not exist in database" });
   }
 
   next(error);
+};
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
 };
 
 morgan.token("data", (request) => {
@@ -25,12 +27,12 @@ morgan.token("data", (request) => {
   return `{"name":"${body.name}", "number":"${body.number}"}`;
 });
 
-app.use(express.json());
 app.use(cors());
-app.use(express.static("build"));
+app.use(express.json());
 app.use(
   morgan(":method :url :status :res[content-lenght] :response-time ms :data")
 );
+app.use(express.static("build"));
 
 app.get("/api/persons", (request, response) => {
   Person.find({}).then((people) => {
@@ -39,12 +41,12 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/info", (request, response) => {
-  const numOfPeople = Person.length;
   const currentTime = new Date();
-
-  response.send(
-    `<p>Phonebook has info for ${numOfPeople} people</p><br>${currentTime}`
-  );
+  Person.countDocuments().then((count_documents) => {
+    response.send(
+      `<p>Phonebook has info for ${count_documents} people</p><br>${currentTime}`
+    );
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
