@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 require('dotenv').config();
-const { response, request } = require('express');
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -13,8 +12,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' });
-  } if (error.name === 'TypeError') {
-    return response.status(400).send({ error: 'Does not exist in database' });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
@@ -43,59 +42,40 @@ app.get('/api/persons', (request, response) => {
 });
 
 app.get('/info', (request, response) => {
-  const currentTime = new Date();
   Person.countDocuments().then((countDocuments) => {
     response.send(
-      `<p>Phonebook has info for ${countDocuments} people</p><br>${currentTime}`,
+      `<p>Phonebook has info for ${countDocuments} people</p><br>${new Date()}`,
     );
   });
 });
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id).then((person) => {
     response.json(person);
-  });
+  })
+    .catch(error => next(error));
 });
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));
 });
 
-app.post('/api/persons', (request, response) => {
-  const { body } = request;
-
-  if (body.name === undefined) {
-    return response.status(400).json({
-      error: 'missing name',
-    });
-  }
-
-  if (body.number === undefined) {
-    return response.status(400).json({
-      error: 'missing number',
-    });
-  }
-
-  /*
-  if (phonebook.some((person) => person.name === body.name)) {
-    return response.status(400).json({
-      error: "name is already in phonebook",
-    });
-  }
-  */
+app.post('/api/persons', (request, response, next) => {
+  const { name, number } = request.body;
 
   const person = new Person({
-    name: body.name,
-    number: body.number,
+    name: name,
+    number: number,
   });
 
-  person.save().then((savedPerson) => {
-    response.json(savedPerson);
-  });
+  person.save().then(() => {
+    response.json(person);
+  })
+    .catch(error => next(error));
 });
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -116,7 +96,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.use(unknownEndpoint);
 app.use(errorHandler);
 
-const { PORT } = process.env;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
